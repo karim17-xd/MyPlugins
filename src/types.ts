@@ -12,7 +12,7 @@ export interface Resource {
   id: string; title: string; url: string; description: string; type: ResourceType;
   categoryId: string | null; learningPathIds: string[]; tags: string[]; notes: string;
   isFavorite: boolean; isPinned: boolean; status: Status | null; priority: Priority | null;
-  isSample: boolean; createdAt: string; updatedAt: string; lastOpenedAt: string | null; archivedAt: string | null;
+  createdAt: string; updatedAt: string; lastOpenedAt: string | null; archivedAt: string | null;
 }
 export type ResourceInput = Pick<Resource, 'title'|'url'|'description'|'type'|'categoryId'|'learningPathIds'|'tags'|'notes'|'status'|'priority'|'isFavorite'|'isPinned'>;
 /** Category and learning path share one shape. */

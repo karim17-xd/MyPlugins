@@ -58,11 +58,11 @@ export function ResourceList({ base, title, q, defaultSort, initial, canFilterAr
       {shown.length ? <Cards list={shown} view={data.settings.view} onEdit={a.onEdit} onDelete={a.onDelete} /> : (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-line px-6 py-16 text-center">
           <SearchX size={28} className="text-muted" />
-          <p className="font-medium">{active ? 'No resources match your search and filters' : 'Nothing here yet'}</p>
+          <p className="font-medium">{active ? 'No resources match your search and filters' : 'No resources yet'}</p>
           <p className="max-w-sm text-sm text-muted">{active ? 'Try different words or clear a filter.' : emptyHint}</p>
           {active
             ? <button className="btn" onClick={() => setF({ type: '', category: '', path: '', status: '', priority: '', favorite: false, archived: canFilterArchived ? 'active' : 'all' })}>Clear filters</button>
-            : <button className="btn btn-primary" onClick={a.onAdd}><Plus size={16} />Add resource</button>}
+            : <button className="btn btn-primary" onClick={a.onAdd}><Plus size={16} />{data.resources.length === 0 ? 'Add Your First Resource' : 'Add resource'}</button>}
         </div>
       )}
     </div>
@@ -87,6 +87,13 @@ export function Dashboard({ go, ...a }: { go: (n: Nav) => void } & Actions) {
       <dl className="mb-8 grid grid-cols-2 gap-x-8 gap-y-3 border-b border-line pb-6 sm:flex">
         {stats.map(([l, n]) => <div key={l}><dd className="text-3xl font-semibold tabular-nums">{n}</dd><dt className="text-sm text-muted">{l}</dt></div>)}
       </dl>
+      {live.length === 0 && (
+        <div className="mb-8 flex flex-col items-center gap-3 rounded-lg border border-dashed border-line px-6 py-12 text-center">
+          <p className="font-medium">Your library is empty</p>
+          <p className="max-w-sm text-sm text-muted">Save websites, documentation, tools, and courses you want to keep track of.</p>
+          <button className="btn btn-primary" onClick={a.onAdd}><Plus size={16} />Add Your First Resource</button>
+        </div>
+      )}
       {sec('Pinned', pinned, 'Pin a resource from its ⋯ menu to keep it here.', 'grid')}
       <div className="grid gap-x-8 lg:grid-cols-2">{sec('Recently added', added, 'No resources yet.')}{sec('Recently opened', opened, 'Open a resource and it appears here.')}</div>
       <section><h2 className="mb-2 text-sm font-semibold text-muted">By learning path</h2>
@@ -98,7 +105,12 @@ export function Dashboard({ go, ...a }: { go: (n: Nav) => void } & Actions) {
                 <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full" style={{ background: p.color }} />{p.name}</span><span className="tabular-nums text-muted">{n}</span></button></li>;
             })}
           </ul>
-        ) : <p className="rounded-lg border border-dashed border-line p-4 text-sm text-muted">Create learning paths in Manage Categories.</p>}
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-line p-4 text-sm text-muted">
+            <span>No learning paths created yet.</span>
+            <button className="btn py-1" onClick={() => go({ k: 'manage' })}><Plus size={14} />Create learning path</button>
+          </div>
+        )}
       </section>
     </div>
   );
@@ -131,21 +143,27 @@ export function Manage() {
   const { data, deleteTaxon } = useStore();
   const [edit, setEdit] = useState<{ kind: TaxonKind; id?: string } | null>(null);
   const [del, setDel] = useState<{ kind: TaxonKind; id: string; name: string } | null>(null);
-  const block = (kind: TaxonKind, title: string) => (
+  const block = (kind: TaxonKind, title: string, singular: string) => (
     <section className="mb-8">
-      <div className="mb-2 flex items-center justify-between"><h2 className="text-sm font-semibold text-muted">{title}</h2><button className="btn py-1" onClick={() => setEdit({ kind })}><Plus size={14} />Add</button></div>
-      {data[kind].length === 0 && <p className="rounded-lg border border-dashed border-line p-4 text-sm text-muted">None yet.</p>}
-      <ul className="divide-y divide-line rounded-lg border border-line bg-panel">
-        {data[kind].map((t) => {
-          const n = data.resources.filter((r) => (kind === 'categories' ? r.categoryId === t.id : r.learningPathIds.includes(t.id))).length;
-          return <li key={t.id} className="flex items-center gap-3 px-4 py-2.5 text-sm"><span className="h-2.5 w-2.5 rounded-full" style={{ background: t.color }} /><span className="flex-1 truncate">{t.name}{t.description && <span className="ml-2 text-muted">{t.description}</span>}</span><span className="tabular-nums text-muted">{n}</span>
-            <IconBtn label={`Rename ${t.name}`} onClick={() => setEdit({ kind, id: t.id })}><Pencil size={15} /></IconBtn><IconBtn label={`Delete ${t.name}`} onClick={() => setDel({ kind, id: t.id, name: t.name })}><Trash2 size={15} /></IconBtn></li>;
-        })}
-      </ul>
+      <div className="mb-2 flex items-center justify-between"><h2 className="text-sm font-semibold text-muted">{title}</h2><button className="btn py-1" onClick={() => setEdit({ kind })}><Plus size={14} />Add {singular}</button></div>
+      {data[kind].length === 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-line p-4 text-sm text-muted">
+          <span>No {title.toLowerCase()} yet.</span>
+          <button className="btn py-1" onClick={() => setEdit({ kind })}><Plus size={14} />Create your first {singular}</button>
+        </div>
+      ) : (
+        <ul className="divide-y divide-line rounded-lg border border-line bg-panel">
+          {data[kind].map((t) => {
+            const n = data.resources.filter((r) => (kind === 'categories' ? r.categoryId === t.id : r.learningPathIds.includes(t.id))).length;
+            return <li key={t.id} className="flex items-center gap-3 px-4 py-2.5 text-sm"><span className="h-2.5 w-2.5 rounded-full" style={{ background: t.color }} /><span className="flex-1 truncate">{t.name}{t.description && <span className="ml-2 text-muted">{t.description}</span>}</span><span className="tabular-nums text-muted">{n}</span>
+              <IconBtn label={`Rename ${t.name}`} onClick={() => setEdit({ kind, id: t.id })}><Pencil size={15} /></IconBtn><IconBtn label={`Delete ${t.name}`} onClick={() => setDel({ kind, id: t.id, name: t.name })}><Trash2 size={15} /></IconBtn></li>;
+          })}
+        </ul>
+      )}
     </section>
   );
   return (
-    <div><Heading>Manage categories</Heading>{block('categories', 'Categories')}{block('paths', 'Learning paths')}
+    <div><Heading>Manage categories</Heading>{block('categories', 'Categories', 'category')}{block('paths', 'Learning paths', 'learning path')}
       {edit && <TaxonModal {...edit} onClose={() => setEdit(null)} />}
       {del && <Confirm title={`Delete “${del.name}”?`} message="Resources keep their data; they just lose this label." confirmLabel="Delete" onCancel={() => setDel(null)} onConfirm={() => { deleteTaxon(del.kind, del.id); setDel(null); }} />}
     </div>
@@ -153,13 +171,12 @@ export function Manage() {
 }
 
 export function SettingsView() {
-  const { data, setSettings, replaceAll, clearSamples, resetAll, notify } = useStore();
+  const { data, setSettings, replaceAll, resetAll, notify } = useStore();
   const { settings: s } = data;
   const file = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<AppData | null>(null);
-  const [confirm, setConfirm] = useState<'samples' | 'reset' | null>(null);
+  const [confirm, setConfirm] = useState<'reset' | null>(null);
   const [err, setErr] = useState('');
-  const samples = data.resources.filter((r) => r.isSample).length;
   const doExport = () => {
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
     const a = document.createElement('a'); a.href = url; a.download = `my-plugins-${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(url);
@@ -184,12 +201,10 @@ export function SettingsView() {
         <button className="btn" onClick={doExport}><Download size={16} />Export JSON</button>
         <button className="btn" onClick={() => file.current?.click()}><Upload size={16} />Import JSON</button>
         <input ref={file} type="file" accept="application/json,.json" className="hidden" onChange={(e) => doImport(e.target.files?.[0])} />
-        {samples > 0 && <button className="btn" onClick={() => setConfirm('samples')}>Remove {samples} starter resources</button>}
         <button className="btn border-danger text-danger" onClick={() => setConfirm('reset')}>Reset all data</button>
       </div>
       {err && <p role="alert" className="mt-3 text-sm text-danger">{err}</p>}
       {pending && <Confirm danger={false} title="Replace current data?" message={`Importing will replace everything with ${pending.resources.length} resources, ${pending.categories.length} categories and ${pending.collections.length} collections from the file.`} confirmLabel="Replace data" onCancel={() => setPending(null)} onConfirm={() => { replaceAll(pending); setPending(null); notify('Data imported'); }} />}
-      {confirm === 'samples' && <Confirm title="Remove starter resources?" message="Only the sample resources are removed. Resources you added or edited stay." confirmLabel="Remove" onCancel={() => setConfirm(null)} onConfirm={() => { clearSamples(); setConfirm(null); }} />}
       {confirm === 'reset' && <Confirm title="Reset all data?" requireText="RESET" message="This permanently deletes every resource, collection and custom category in this browser. Export a backup first if unsure." confirmLabel="Reset everything" onCancel={() => setConfirm(null)} onConfirm={() => { resetAll(); setConfirm(null); notify('All data reset'); }} />}
     </div>
   );

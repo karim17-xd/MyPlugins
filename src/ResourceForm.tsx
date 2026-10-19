@@ -28,7 +28,7 @@ export function ResourceForm({ resource, onClose }: { resource: Resource | null;
     const url = normalizeUrl(f.url);
     if (!f.title.trim()) errs.title = 'Enter a title.';
     if (!f.url.trim()) errs.url = 'Enter a URL.';
-    else if (!url) errs.url = 'Enter a valid web address, for example https://example.com.';
+    else if (!url) errs.url = 'Enter a valid web address starting with http:// or https://.';
     else {
       const dup = data.resources.find((r) => r.id !== resource?.id && normKey(r.url) === normKey(url));
       if (dup) errs.url = `Already saved as “${dup.title}”.`;

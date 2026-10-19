@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { AppData, Resource, ResourceInput, Settings, TaxonKind } from './types';
-import { COLORS, createSeed, emptyData, loadData, saveData, uid } from './storage';
+import { COLORS, emptyData, loadData, saveData, uid } from './storage';
 
 interface Store {
   data: AppData; toast: string | null; notify: (m: string) => void;
@@ -8,7 +8,7 @@ interface Store {
   deleteResource: (id: string) => void; markOpened: (id: string) => void;
   saveCollection: (name: string, id?: string) => void; deleteCollection: (id: string) => void; toggleInCollection: (cid: string, rid: string) => void;
   saveTaxon: (kind: TaxonKind, t: { name: string; description: string; color: string }, id?: string) => void; deleteTaxon: (kind: TaxonKind, id: string) => void;
-  setSettings: (p: Partial<Settings>) => void; replaceAll: (d: AppData) => void; clearSamples: () => void; resetAll: () => void;
+  setSettings: (p: Partial<Settings>) => void; replaceAll: (d: AppData) => void; resetAll: () => void;
 }
 const Ctx = createContext<Store | null>(null);
 export const useStore = (): Store => { const s = useContext(Ctx); if (!s) throw new Error('StoreProvider missing'); return s; };
@@ -28,8 +28,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return {
       data, toast, notify, patchResource: patch,
       saveResource: (i, id) => up((d) => id
-        ? { ...d, resources: d.resources.map((r) => (r.id === id ? { ...r, ...i, isSample: false, updatedAt: now() } : r)) }
-        : { ...d, resources: [{ ...i, id: uid(), isSample: false, createdAt: now(), updatedAt: now(), lastOpenedAt: null, archivedAt: null }, ...d.resources] }),
+        ? { ...d, resources: d.resources.map((r) => (r.id === id ? { ...r, ...i, updatedAt: now() } : r)) }
+        : { ...d, resources: [{ ...i, id: uid(), createdAt: now(), updatedAt: now(), lastOpenedAt: null, archivedAt: null }, ...d.resources] }),
       deleteResource: (id) => up((d) => ({ ...d, resources: d.resources.filter((r) => r.id !== id), collections: d.collections.map((c) => ({ ...c, resourceIds: c.resourceIds.filter((x) => x !== id) })) })),
       markOpened: (id) => up((d) => ({ ...d, resources: d.resources.map((r) => (r.id === id ? { ...r, lastOpenedAt: now() } : r)) })),
       saveCollection: (name, id) => up((d) => id
@@ -44,10 +44,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       })),
       setSettings: (p) => up((d) => ({ ...d, settings: { ...d.settings, ...p } })),
       replaceAll: (d) => setData(d),
-      clearSamples: () => up((d) => ({ ...d, resources: d.resources.filter((r) => !r.isSample), collections: d.collections.map((c) => ({ ...c, resourceIds: c.resourceIds.filter((x) => d.resources.find((r) => r.id === x)?.isSample !== true) })) })),
       resetAll: () => setData({ ...emptyData(), settings: data.settings }),
     };
   }, [data, toast, notify]);
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
 }
-export { createSeed };

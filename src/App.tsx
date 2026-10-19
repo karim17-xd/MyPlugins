@@ -61,7 +61,12 @@ export default function App() {
       {item({ k: 'opened' }, 'Recently Opened', <History size={16} />)}
       {item({ k: 'archived' }, 'Archived', <Archive size={16} />, data.resources.length - live.length)}
       <div className="mb-1 mt-5 flex items-center justify-between px-2.5 text-xs font-semibold text-muted">Collections<IconBtn label="New collection" onClick={() => setCollModal({ name: '' })}><FolderPlus size={14} /></IconBtn></div>
-      {data.collections.length === 0 && <p className="px-2.5 text-xs text-muted">Group resources any way you like.</p>}
+      {data.collections.length === 0 && (
+        <div className="px-2.5 py-1 text-xs text-muted">
+          <p className="mb-1.5">No collections yet.</p>
+          <button type="button" className="text-accent hover:underline" onClick={() => setCollModal({ name: '' })}>+ Create collection</button>
+        </div>
+      )}
       {data.collections.map((c) => (
         <div key={c.id} className="group flex items-center">
           <div className="min-w-0 flex-1">{item({ k: 'collection', id: c.id }, c.name, <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />, c.resourceIds.length)}</div>

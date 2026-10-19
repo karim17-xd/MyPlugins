@@ -40,7 +40,6 @@ function Card({ r, view, compact, onEdit, onDelete }: Props) {
         <span className="chip">{r.type}</span>
         {cat && <span className="chip"><span className="h-1.5 w-1.5 rounded-full" style={{ background: cat.color }} />{cat.name}</span>}
         {r.status && <span className="chip text-accent">{r.status}</span>}
-        {r.isSample && <span className="chip border border-dashed border-line">Starter</span>}
         {r.tags.slice(0, list ? 2 : 3).map((t) => <span key={t} className="chip">#{t}</span>)}
         {r.tags.length > (list ? 2 : 3) && <span className="chip">+{r.tags.length - (list ? 2 : 3)}</span>}
       </div>
